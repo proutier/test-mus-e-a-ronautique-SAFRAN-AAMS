@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choix de la langue – Audioguide</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f2f2f2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:20px 15px;
+}
+
+/* Logo */
+#logo{
+  max-width:160px;
+  margin:10px 0 20px;
+}
+
+/* Titre */
+h2{
+  margin-bottom:20px;
+  font-size:20px;
+}
+
+/* Boutons langue */
+.lang-btn{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:14px;
+  width:100%;
+  max-width:360px;
+  padding:14px 18px;
+  margin:10px auto;
+  font-size:17px;
+  border:none;
+  border-radius:12px;
+  color:#fff;
+  cursor:pointer;
+}
+
+/* Drapeaux */
+.flag{
+  width:42px;
+  height:28px;
+  border-radius:4px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.7);
+  object-fit:cover;
+}
+
+/* Couleurs */
+.fr{background:#0055A4;}
+.en{background:#012169;}
+.de{background:#000000;}
+.es{background:#C60B1E;}
+.it{background:#008C45;}
+.cn{background:#DE2910;}
+
+.lang-btn:hover{opacity:0.92;}
+
+.note{
+  margin-top:26px;
+  font-size:13px;
+  color:#666;
+  line-height:1.4;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGO MUSÉE -->
+<img id="logo"
+     src="https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg"
+     alt="Musée Safran AAMS">
+
+<h2>Choisissez votre langue</h2>
+
+<button class="lang-btn fr" onclick="setLang('fr')">
+  <img class="flag" src="https://flagcdn.com/fr.svg" alt="France">
+  Français
+</button>
+
+<button class="lang-btn en" onclick="setLang('en')">
+  <img class="flag" src="https://flagcdn.com/gb.svg" alt="United Kingdom">
+  English
+</button>
+
+<button class="lang-btn de" onclick="setLang('de')">
+  <img class="flag" src="https://flagcdn.com/de.svg" alt="Deutschland">
+  Deutsch
+</button>
+
+<button class="lang-btn es" onclick="setLang('es')">
+  <img class="flag" src="https://flagcdn.com/es.svg" alt="España">
+  Español
+</button>
+
+<button class="lang-btn it" onclick="setLang('it')">
+  <img class="flag" src="https://flagcdn.com/it.svg" alt="Italia">
+  Italiano
+</button>
+
+<button class="lang-btn cn" onclick="setLang('cn')">
+  <img class="flag" src="https://flagcdn.com/cn.svg" alt="中国">
+  中文
+</button>
+
+<p class="note">
+La langue choisie sera conservée pour toute la visite.<br>
+Audioguide utilisable sans connexion Internet.
+</p>
+
+<script>
+function setLang(lang){
+  // mémorise la langue pour toutes les fiches
+  localStorage.setItem("langueAudioguide", lang);
+
+  // redirection vers la fiche suivante
+  window.location.href = "fiche02.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audioguide – Fiche 02</title>
+
+<style>
+html,body{
+  margin:0;padding:0;height:100vh;
+  font-family:Arial,sans-serif;
+  background:#f2f2f2;overflow:hidden
+}
+body{display:flex;flex-direction:column;align-items:center}
+
+#logo{max-width:110px;margin:6px}
+#fiche{color:#0078ff;font-size:15px}
+#titre{text-align:center;font-size:14px;margin-bottom:4px}
+
+/* IMAGES */
+#imageWrapper{
+  width:92%;height:20vh;position:relative;
+  overflow:hidden;border-radius:10px;background:#ddd
+}
+#imageWrapper img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;opacity:0;transition:opacity 1s
+}
+#imageWrapper img.active{opacity:1}
+
+/* LANGUES */
+.grid{
+  width:92%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:6px 0
+}
+.grid.oneLang{
+  grid-template-columns:1fr;
+  justify-items:center
+}
+.button{
+  padding:10px;font-size:14px;border:none;
+  border-radius:8px;color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%
+}
+.flag{width:20px;height:14px}
+.fr{background:#0055A4}.en{background:#00247D}
+.es{background:#AA151B}.it{background:#009246}
+.de{background:#000}.cn{background:#DE2910}
+
+/* TEXTE */
+#textContainer{
+  display:none;
+  width:92%;
+  height:18vh;
+  background:#fff;
+  border-radius:8px;
+  padding:6px;
+  font-size:13px;
+  line-height:1.4;
+  overflow:auto
+}
+
+/* CONTROLES */
+#controls{display:none;gap:10px;margin:6px 0}
+#controls button{
+  padding:6px 14px;font-size:18px;
+  border-radius:8px
+}
+
+/* PROGRESSION */
+#progressContainer{
+  width:90%;height:14px;background:#ddd;
+  border-radius:8px;position:relative;
+  overflow:hidden;margin:6px 0
+}
+#progressBar{height:100%;width:0;background:#0078ff}
+#progressTime{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:bold
+}
+
+/* NAVIGATION */
+#navFiches{display:flex;gap:8px;margin:6px 0}
+.navButton{
+  padding:6px 16px;border-radius:30px;
+  border:2px solid #cbb48f;
+  background:#f5e9d7;font-size:13px;
+  text-decoration:none;color:#000
+}
+
+footer{font-size:10px;margin:4px;color:#666}
+</style>
+</head>
+
+<body>
+
+<img id="logo" src="https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg">
+<div id="fiche">Fiche 01</div>
+<div id="titre">Introduction générale</div>
+
+<div id="imageWrapper">
+  <img id="imgA" class="active" src="https://archive.org/download/musee-safran/MUSEE%20SAFRAN.jpg">
+  <img id="imgB">
+</div>
+
+<div class="grid" id="langGrid">
+  <button class="button fr" onclick="selectLang('fr',this)"><img class="flag" src="https://flagcdn.com/fr.svg">Français</button>
+  <button class="button en" onclick="selectLang('en',this)"><img class="flag" src="https://flagcdn.com/gb.svg">English</button>
+  <button class="button es" onclick="selectLang('es',this)"><img class="flag" src="https://flagcdn.com/es.svg">Español</button>
+  <button class="button it" onclick="selectLang('it',this)"><img class="flag" src="https://flagcdn.com/it.svg">Italiano</button>
+  <button class="button de" onclick="selectLang('de',this)"><img class="flag" src="https://flagcdn.com/de.svg">Deutsch</button>
+  <button class="button cn" onclick="selectLang('cn',this)"><img class="flag" src="https://flagcdn.com/cn.svg">中文</button>
+</div>
+
+<div id="textContainer"></div>
+<audio id="player" playsinline></audio>
+
+<div id="controls">
+  <button onclick="togglePlay()">▶ ⏸</button>
+  <button onclick="stopAudio()">⏹</button>
+</div>
+
+<div id="progressContainer">
+  <div id="progressBar"></div>
+  <div id="progressTime">00:00 / 00:00</div>
+</div>
+
+<div id="navFiches">
+  <a class="navButton" href="fiche01.html">🏠 Accueil</a>
+  <a class="navButton" href="fiche03.html">Suivant ▶</a>
+</div>
+
+<footer>© 2026 — Pascal Routier</footer>
+
+<script>
+const player=document.getElementById("player");
+const textContainer=document.getElementById("textContainer");
+const controls=document.getElementById("controls");
+const bar=document.getElementById("progressBar");
+const timeDisplay=document.getElementById("progressTime");
+const imgA=document.getElementById("imgA");
+const imgB=document.getElementById("imgB");
+const grid=document.getElementById("langGrid");
+
+let activeImg=imgA,inactiveImg=imgB;
+let normText="",shown=new Set(),namePositions=[];
+let langSelected=false;
+
+function norm(t){
+  return t.toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z]/g,"");
+}
+
+/* DONNÉES FICHE 01 */
+const people=[
+ {key:"safran",img:"https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg"},
+ {key:"snecma",img:"https://archive.org/download/logo-snecma/logo%20SNECMA.jpg"},
+ {key:"aams",img:"https://archive.org/download/logo-aams/logo%20AAMS.jpg"}
+];
+
+const audioSrc={
+ fr:"https://archive.org/download/fiche-01-dore-v-2-francais-introduction-generale/FICHE%2001%20DORE%20V2%20FRANCAIS%20introduction%20g%C3%A9n%C3%A9rale.mp3",
+ en:"https://archive.org/download/fiche-01-sarah-anglais-introduction-generale/FICHE%2001%20SARAH%20ANGLAIS%20introduction%20g%C3%A9n%C3%A9rale.mp3",
+ es:"https://archive.org/download/fiche-01-luis-v-2-espagnol-introduction-generale/FICHE%2001%20LUIS%20V2%20ESPAGNOL%20introduction%20g%C3%A9n%C3%A9rale.mp3",
+ it:"https://archive.org/download/fiche-01-elsa-italien-introduction-generale/FICHE%2001%20ELSA%20ITALIEN%20introduction%20g%C3%A9n%C3%A9rale.mp3",
+ de:"https://archive.org/download/fiche-01-alama-allemand-introduction-generale/FICHE%2001%20ALAMA%20ALLEMAND%20introduction%20g%C3%A9n%C3%A9rale.mp3",
+ cn:"https://archive.org/download/fiche-01-1346-chinois-introduction-generale/FICHE%2001%201346%20CHINOIS%20introduction%20g%C3%A9n%C3%A9rale.mp3"
+};
+
+const texts={
+ fr:"https://ia801702.us.archive.org/31/items/fiche_01_francais/fiche_01_francais.txt",
+ en:"https://ia601207.us.archive.org/1/items/fiche_01_anglais/fiche_01_anglais.txt",
+ es:"https://ia800604.us.archive.org/24/items/fiche_01_espagnol/fiche_01_espagnol.txt",
+ it:"https://ia601708.us.archive.org/2/items/fiche_01_italien/fiche_01_italien.txt",
+ de:"https://ia800305.us.archive.org/24/items/fiche_01_allemand/fiche_01_allemand.txt",
+ cn:"https://ia800407.us.archive.org/35/items/fiche_01_chinois/fiche_01_chinois.txt"
+};
+
+/* SÉLECTION DE LANGUE (SANS LECTURE) */
+function selectLang(lang,btn){
+  [...grid.children].forEach(b=>b.style.display="none");
+  btn.style.display="flex";
+  grid.classList.add("oneLang");
+
+  player.src=audioSrc[lang];
+  player.currentTime=0;
+
+  textContainer.style.display="block";
+  controls.style.display="flex";
+  bar.style.width="0%";
+  shown.clear();
+  langSelected=true;
+
+  fetch(texts[lang]).then(r=>r.text()).then(t=>{
+    textContainer.innerHTML=t;
+    normText=norm(t);
+    namePositions=[];
+    people.forEach(p=>{
+      const i=normText.indexOf(p.key);
+      if(i!==-1) namePositions.push({...p,index:i});
+    });
+  });
+}
+
+/* PLAY / PAUSE */
+function togglePlay(){
+  if(!langSelected) return;
+  player.paused ? player.play() : player.pause();
+}
+
+/* STOP */
+function stopAudio(){
+  player.pause();
+  player.currentTime=0;
+}
+
+/* IMAGES + PROGRESSION */
+player.addEventListener("timeupdate",()=>{
+  if(!player.duration) return;
+  const r=player.currentTime/player.duration;
+  bar.style.width=(r*100)+"%";
+  timeDisplay.textContent=format(player.currentTime)+" / "+format(player.duration);
+  textContainer.scrollTop=(textContainer.scrollHeight-textContainer.clientHeight)*r;
+
+  const idx=Math.floor(normText.length*r);
+  namePositions.forEach(p=>{
+    if(!shown.has(p.key)&&idx>=p.index){
+      shown.add(p.key);
+      inactiveImg.src=p.img;
+      inactiveImg.classList.add("active");
+      activeImg.classList.remove("active");
+      [activeImg,inactiveImg]=[inactiveImg,activeImg];
+    }
+  });
+});
+
+function format(s){
+  let m=Math.floor(s/60),sec=Math.floor(s%60);
+  return m.toString().padStart(2,"0")+":"+sec.toString().padStart(2,"0");
+}
+</script>
+
+</body>
+</html>

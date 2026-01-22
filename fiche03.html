@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audioguide – Fiche 02</title>
+<style>
+/* ===== STYLES GÉNÉRAUX ===== */
+html, body {
+    margin:0; padding:0; height:100vh; 
+    font-family:Arial,sans-serif; 
+    background:#f2f2f2; 
+    overflow:hidden;
+}
+body{
+    display:flex; flex-direction:column; align-items:center;
+}
+#logo{max-width:110px;margin:6px;} 
+#fiche{color:#0078ff;font-size:15px;} 
+#titre{text-align:center;font-size:14px;margin-bottom:4px;}
+
+/* ===== IMAGE ===== */
+#imageWrapper{width:92%; height:20vh; position:relative; overflow:hidden; border-radius:10px; background:#ddd;}
+#imageWrapper img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity 1s;
+}
+#imageWrapper img.active{opacity:1;}
+
+/* ===== BOUTONS LANGUES ===== */
+.grid{
+    width:92%; display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:6px 0;
+}
+.button{
+    padding:10px; font-size:14px; border:none; border-radius:8px; color:#fff; 
+    display:flex; justify-content:center; align-items:center; gap:6px;
+}
+.flag{width:20px; height:14px;}
+.fr{background:#0055A4}.en{background:#00247D}.es{background:#AA151B}.it{background:#009246}.de{background:#000}.cn{background:#DE2910}
+
+/* ===== CONTENEUR TEXTE ===== */
+#textContainer{
+    display:none; width:92%; max-height:14vh; background:#fff; border-radius:8px; 
+    padding:6px; font-size:13px; line-height:1.4; overflow:hidden;
+}
+.highlight{background:#ffe58a; font-weight:bold; text-decoration:underline;}
+
+/* ===== CONTROLES AUDIO ===== */
+#controls{display:none; gap:8px; margin:4px 0;}
+#controls button{padding:6px 12px; font-size:14px; border-radius:6px;}
+
+/* ===== PROGRESSION ===== */
+#progressContainer{width:90%; height:5px; background:#ddd; border-radius:4px;}
+#progressBar{width:0; height:100%; background:#0078ff;}
+
+/* ===== NAVIGATION FICHES ===== */
+#navFiches{display:flex; gap:8px; margin:4px 0;}
+.navButton{
+    padding:6px 16px; border-radius:30px; border:2px solid #cbb48f; 
+    background:#f5e9d7; font-size:13px; text-decoration:none; color:#000;
+}
+
+/* ===== FOOTER ===== */
+footer{font-size:10px; margin:4px; color:#666;}
+</style>
+</head>
+<body>
+
+<!-- Logo et titre -->
+<img id="logo" src="https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg">
+<div id="fiche">Fiche 02</div>
+<div id="titre">La galerie des présidents</div>
+
+<!-- Images dynamiques -->
+<div id="imageWrapper">
+  <img id="imgA" class="active" src="https://archive.org/download/les-freres-seguin/les%20freres%20seguin.jpg">
+  <img id="imgB">
+</div>
+
+<!-- Boutons langues -->
+<div class="grid">
+  <button class="button fr" onclick="playLang('fr')"><img class="flag" src="https://flagcdn.com/fr.svg"> Français</button>
+  <button class="button en" onclick="playLang('en')"><img class="flag" src="https://flagcdn.com/gb.svg"> English</button>
+  <button class="button es" onclick="playLang('es')"><img class="flag" src="https://flagcdn.com/es.svg"> Español</button>
+  <button class="button it" onclick="playLang('it')"><img class="flag" src="https://flagcdn.com/it.svg"> Italiano</button>
+  <button class="button de" onclick="playLang('de')"><img class="flag" src="https://flagcdn.com/de.svg"> Deutsch</button>
+  <button class="button cn" onclick="playLang('cn')"><img class="flag" src="https://flagcdn.com/cn.svg"> 中文</button>
+</div>
+
+<!-- Texte et audio -->
+<div id="textContainer"></div>
+<audio id="player" playsinline></audio>
+
+<!-- Contrôles audio -->
+<div id="controls">
+  <button onclick="togglePlay()">⏯</button>
+  <button onclick="stopAudio()">⏹</button>
+</div>
+
+<!-- Barre de progression -->
+<div id="progressContainer"><div id="progressBar"></div></div>
+
+<!-- Navigation fiches -->
+<div id="navFiches">
+  <a class="navButton" target="_blank" href="https://sites.google.com/view/fiche-01-introduction-generale/accueil">Précédent</a>
+  <a class="navButton" target="_blank" href="https://sites.google.com/view/fiche03museesafran/accueil">Suivant</a>
+</div>
+
+<footer>© 2026 — Pascal Routier</footer>
+
+<script>
+// ===== VARIABLES GLOBALES =====
+const player = document.getElementById("player");
+const textContainer = document.getElementById("textContainer");
+const controls = document.getElementById("controls");
+const bar = document.getElementById("progressBar");
+const imgA = document.getElementById("imgA");
+const imgB = document.getElementById("imgB");
+let activeImg = imgA, inactiveImg = imgB;
+let normText = "", shown = new Set(), namePositions=[];
+
+// ===== NORMALISATION DU TEXTE =====
+function norm(t){ 
+    return t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z]/g,""); 
+}
+
+// ===== PRÉSIDENTS AVEC IMAGE =====
+const people = [
+ {key:"louisseguin",label:"Louis Seguin",img:"https://image2url.com/images/1766155297973-6b365520-86ed-488a-b81b-555248af6566.jpg"},
+ {key:"louisverdet",label:"Louis Verdet",img:"https://image2url.com/images/1766155355324-3e017d6d-1951-4b0b-85c5-103280efe504.jpg"},
+ {key:"paullouisweiller",label:"Paul-Louis Weiller",img:"https://image2url.com/images/1766156474852-90eda0d2-a351-43cc-b5b4-a9ea6e3154ee.jpg"},
+ {key:"henridesbrueres",label:"Henri Desbruères",img:"https://image2url.com/images/1766157811705-e19ed475-7771-4c70-8cd2-b90762a9a853.jpg"},
+ {key:"reneravaud",label:"René Ravaud",img:"https://image2url.com/images/1766157980301-abff6a6a-5448-4a47-8992-782775ae43d4.jpg"},
+ {key:"louisgallois",label:"Louis Gallois",img:"https://image2url.com/images/1766158110189-9a8ea61a-9f48-4687-8e5c-6b661fdd31d2.jpg"},
+ {key:"jeanpaulbechat",label:"Jean-Paul Béchat",img:"https://image2url.com/images/1766158205033-8c609879-f244-4104-9587-83eaf2bdf759.jpg"},
+ {key:"jeanpaulherteman",label:"Jean-Paul Herteman",img:"https://image2url.com/images/1766158301351-7371f390-c2fc-4ba2-8322-5e604e16365d.jpg"}
+];
+
+// ===== SOURCES AUDIO =====
+const audioSrc = {
+ fr:"https://ia600705.us.archive.org/5/items/2-la-galerie-des-president-2-minutes-27/2%20la%20galerie%20des%20president%20_2%20minutes_27.mp3",
+ en:"https://ia601702.us.archive.org/7/items/sarah-anglais-2-la-galerie-des-president-2-minutes-27/SARAH_ANGLAIS%202%20la%20galerie%20des%20president%20_2%20minutes_27.mp3",
+ es:"https://ia801707.us.archive.org/14/items/luis-espagnol-2-la-galerie-des-president-2-minutes-27/LUIS_ESPAGNOL%202%20la%20galerie%20des%20president%20_2%20minutes_27.mp3",
+ it:"https://dn720909.ca.archive.org/0/items/elsa-italien-2-la-galerie-des-president-2-minutes-27/ELSA_ITALIEN%202%20la%20galerie%20des%20president%20_2%20minutes_27.mp3",
+ de:"https://ia801708.us.archive.org/6/items/alamas-allemand-2-la-galerie-des-president-2-minutes-27/ALAMAS_ALLEMAND%202%20la%20galerie%20des%20president%20_2%20minutes_27.mp3",
+ cn:"https://dn710103.ca.archive.org/0/items/1346-chinois-2-la-galerie-des-president-2-minutes-27/1346%20CHINOIS%202%20la%20galerie%20des%20president%20_2%20minutes_27.mp3"
+};
+
+// ===== TEXTES =====
+const texts = {
+ fr:"https://archive.org/download/fiche-02-francais-la-galerie-des-presidents_20251219/FICHE%2002%20FRANCAIS%20La%20galerie%20des%20pr%C3%A9sidents.txt",
+ en:"https://archive.org/download/fiche-02-anglais-la-galerie-des-presidents/FICHE%2002%20ANGLAIS%20La%20galerie%20des%20pr%C3%A9sidents.txt",
+ es:"https://archive.org/download/fiche-02-espagnol-la-galerie-des-presidents/FICHE%2002%20ESPAGNOL%20La%20galerie%20des%20pr%C3%A9sidents.txt",
+ it:"https://archive.org/download/fiche-02-italien-la-galerie-des-presidents/FICHE%2002%20ITALIEN%20La%20galerie%20des%20presidents.txt",
+ de:"https://archive.org/download/fiche-02-allemand-la-galerie-des-presidents/FICHE%2002%20ALLEMAND%20La%20galerie%20des%20pr%C3%A9sidents.txt",
+ cn:"https://archive.org/download/fiche-02-chinois-la-galerie-des-presidents/FICHE%2002%20CHINOIS%20La%20galerie%20des%20pr%C3%A9sidents.txt"
+};
+
+// ===== FONCTIONS =====
+
+// Calcul des positions des présidents pour le crossfade et surlignage
+function computeNamePositions(text){ 
+    namePositions=[]; 
+    const n=norm(text); 
+    people.forEach(p=>{ 
+        const i=n.indexOf(p.key); 
+        if(i!==-1) namePositions.push({...p,index:i}); 
+    }); 
+    namePositions.sort((a,b)=>a.index-b.index); 
+}
+
+// Lancer une langue
+function playLang(lang){
+    shown.clear(); 
+    bar.style.width="0%"; 
+    textContainer.style.display="block"; 
+    controls.style.display="flex";
+    player.src=audioSrc[lang]; 
+    player.currentTime=0; 
+    player.play();
+    fetch(texts[lang]).then(r=>r.text()).then(t=>{
+        textContainer.innerHTML=t;
+        normText=norm(t);
+        computeNamePositions(t);
+    });
+}
+
+// Crossfade image
+function crossFade(src){ 
+    inactiveImg.src=src; 
+    inactiveImg.classList.add("active"); 
+    activeImg.classList.remove("active"); 
+    [activeImg,inactiveImg]=[inactiveImg,activeImg]; 
+}
+
+// Mise à jour barre et texte avec surlignage
+player.addEventListener("timeupdate",()=>{
+    if(!player.duration) return;
+    const ratio = player.currentTime / player.duration;
+    bar.style.width = (ratio*100)+"%";
+    textContainer.scrollTop = (textContainer.scrollHeight - textContainer.clientHeight)*ratio;
+    const idx = Math.floor(normText.length*ratio);
+    namePositions.forEach(p=>{
+        if(!shown.has(p.key) && idx >= p.index){
+            shown.add(p.key);
+            crossFade(p.img);
+            const re = new RegExp(p.label,"g");
+            textContainer.innerHTML = textContainer.innerHTML.replace(re, `<span class="highlight">${p.label}</span>`);
+        }
+    });
+});
+
+// Contrôles audio
+function togglePlay(){ player.paused?player.play():player.pause(); }
+function stopAudio(){ player.pause(); player.currentTime=0; }
+</script>
+
+</body>
+</html>
