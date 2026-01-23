@@ -2,128 +2,146 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Choix de la langue – Audioguide</title>
 
 <style>
-body{
+html, body{
+  height:100%;
   margin:0;
+}
+
+body{
   font-family:Arial, Helvetica, sans-serif;
   background:#f2f2f2;
   display:flex;
   flex-direction:column;
   align-items:center;
   text-align:center;
-  padding:20px 15px;
+  padding:10px 12px;
+  box-sizing:border-box;
 }
 
-/* Logo */
+/* LOGO */
 #logo{
-  max-width:160px;
-  margin:10px 0 20px;
+  max-width:130px;
+  margin:6px 0 8px;
 }
 
-/* Titre */
+/* TITRE */
 h2{
-  margin-bottom:20px;
-  font-size:20px;
+  font-size:18px;
+  margin:6px 0 10px;
 }
 
-/* Boutons langue */
+/* CONTENEUR BOUTONS */
+.lang-container{
+  flex:1;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+/* BOUTONS */
 .lang-btn{
   display:flex;
   align-items:center;
-  justify-content:flex-start;
-  gap:14px;
+  gap:12px;
   width:100%;
-  max-width:360px;
-  padding:14px 18px;
-  margin:10px auto;
-  font-size:17px;
+  max-width:340px;
+  padding:10px 14px;
+  margin:6px auto;
+  font-size:15px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   color:#fff;
   cursor:pointer;
 }
 
-/* Drapeaux */
+/* DRAPEAUX */
 .flag{
-  width:42px;
-  height:28px;
+  width:36px;
+  height:24px;
   border-radius:4px;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.7);
   object-fit:cover;
 }
 
-/* Couleurs */
+/* COULEURS */
 .fr{background:#0055A4;}
 .en{background:#012169;}
-.de{background:#000000;}
+.de{background:#000;}
 .es{background:#C60B1E;}
 .it{background:#008C45;}
 .cn{background:#DE2910;}
 
-.lang-btn:hover{opacity:0.92;}
+.lang-btn:active{opacity:0.9}
 
+/* NOTE */
 .note{
-  margin-top:26px;
-  font-size:13px;
+  font-size:12px;
   color:#666;
-  line-height:1.4;
+  line-height:1.3;
+  margin:8px 0 4px;
+}
+
+/* FOOTER */
+footer{
+  font-size:9px;
+  color:#666;
+  margin:2px 0 0;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGO MUSÉE -->
 <img id="logo"
-     src="https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg"
-     alt="Musée Safran AAMS">
+src="https://archive.org/download/logo-safran-musee-aams/logo%20safran%20musee%20aams.jpg"
+alt="Musée Safran AAMS">
 
 <h2>Choisissez votre langue</h2>
 
+<div class="lang-container">
+
 <button class="lang-btn fr" onclick="setLang('fr')">
-  <img class="flag" src="https://flagcdn.com/fr.svg" alt="France">
-  Français
+  <img class="flag" src="https://flagcdn.com/fr.svg"> Français
 </button>
 
 <button class="lang-btn en" onclick="setLang('en')">
-  <img class="flag" src="https://flagcdn.com/gb.svg" alt="United Kingdom">
-  English
+  <img class="flag" src="https://flagcdn.com/gb.svg"> English
 </button>
 
 <button class="lang-btn de" onclick="setLang('de')">
-  <img class="flag" src="https://flagcdn.com/de.svg" alt="Deutschland">
-  Deutsch
+  <img class="flag" src="https://flagcdn.com/de.svg"> Deutsch
 </button>
 
 <button class="lang-btn es" onclick="setLang('es')">
-  <img class="flag" src="https://flagcdn.com/es.svg" alt="España">
-  Español
+  <img class="flag" src="https://flagcdn.com/es.svg"> Español
 </button>
 
 <button class="lang-btn it" onclick="setLang('it')">
-  <img class="flag" src="https://flagcdn.com/it.svg" alt="Italia">
-  Italiano
+  <img class="flag" src="https://flagcdn.com/it.svg"> Italiano
 </button>
 
 <button class="lang-btn cn" onclick="setLang('cn')">
-  <img class="flag" src="https://flagcdn.com/cn.svg" alt="中国">
-  中文
+  <img class="flag" src="https://flagcdn.com/cn.svg"> 中文
 </button>
 
+</div>
+
 <p class="note">
-La langue choisie sera conservée pour toute la visite.<br>
-Audioguide utilisable sans connexion Internet.
+Langue conservée pour toute la visite.<br>
+Audioguide hors connexion.
 </p>
+
+<footer>
+© 2026 — Pascal Routier
+</footer>
 
 <script>
 function setLang(lang){
-  // mémorise la langue pour toutes les fiches
   localStorage.setItem("langueAudioguide", lang);
-
-  // redirection vers la fiche suivante
   window.location.href = "fiche02.html";
 }
 </script>
